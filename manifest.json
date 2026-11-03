@@ -1,0 +1,24 @@
+
+{
+  "id": "./",
+  "name": "CULater - 稍後閱讀",
+  "short_name": "CULater",
+  "description": "個人網址與內容收藏管理工具",
+  "lang": "zh-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7fb",
+  "theme_color": "#172b4d",
+  "share_target": {
+    "action": "./",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
