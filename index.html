@@ -1,726 +1,356 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#F5F9F8">
-  <meta name="description" content="CULater 個人稍後閱讀與收藏工具">
-  <link rel="manifest" href="./manifest.json">
-  <title>CULater｜稍後閱讀</title>
-
-  <style>
-    :root {
-      --sky: #BFE6F1;
-      --sky-deep: #75BFD2;
-      --mint: #B7E2D7;
-      --mint-deep: #559D91;
-      --bg: #F5F9F8;
-      --white: #FFFFFF;
-      --ink: #294B53;
-      --muted: #8AA3A4;
-      --line: #E8F0EE;
-      --shadow: 0 8px 28px rgba(68, 119, 120, .10);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC",
-        "Microsoft JhengHei", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    button, input { font: inherit; }
-    button { cursor: pointer; }
-
-    .app {
-      width: 100%;
-      max-width: 600px;
-      min-height: 100dvh;
-      margin: auto;
-      padding: 24px 20px calc(112px + env(safe-area-inset-bottom));
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .logo {
-      font-size: 27px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      color: #315D67;
-    }
-
-    .tagline {
-      margin-top: 3px;
-      font-size: 11px;
-      letter-spacing: 1.4px;
-      color: var(--muted);
-    }
-
-    .search-button {
-      border: 0;
-      background: #E3F2F3;
-      color: #508F91;
-      width: 43px;
-      height: 43px;
-      border-radius: 50%;
-      font-size: 20px;
-    }
-
-    .search-area {
-      display: none;
-      margin-bottom: 18px;
-    }
-
-    .search-area.show { display: block; }
-
-    .search-area input {
-      width: 100%;
-      padding: 14px 17px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: white;
-      outline: none;
-      color: var(--ink);
-    }
-
-    .welcome {
-      padding: 21px;
-      border-radius: 23px;
-      background: linear-gradient(125deg, #DFF1F6, #DDF2E9);
-      margin-bottom: 28px;
-    }
-
-    .welcome-label {
-      font-size: 13px;
-      color: #648B91;
-    }
-
-    .welcome-count {
-      margin-top: 7px;
-      font-size: 31px;
-      font-weight: 750;
-      color: #315D67;
-    }
-
-    .welcome-count span {
-      font-size: 14px;
-      font-weight: 500;
-      color: #668B8E;
-    }
-
-    .section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 0 2px 15px;
-    }
-
-    .section-heading h2 {
-      margin: 0;
-      font-size: 17px;
-      font-weight: 700;
-    }
-
-    .section-note {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .filter-bar {
-      display: flex;
-      gap: 9px;
-      overflow-x: auto;
-      padding: 2px 0 17px;
-      scrollbar-width: none;
-    }
-
-    .filter-bar::-webkit-scrollbar { display: none; }
-
-    .filter {
-      flex: 0 0 auto;
-      border: 0;
-      border-radius: 30px;
-      padding: 9px 18px;
-      background: #EDF3F1;
-      color: #789392;
-      font-size: 13px;
-    }
-
-    .filter.active {
-      background: #D9F0E9;
-      color: #438C80;
-      font-weight: 700;
-    }
-
-    .items {
-      display: grid;
-      gap: 13px;
-    }
-
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 13px;
-      background: white;
-      border: 1px solid #EDF2F0;
-      border-radius: 19px;
-      padding: 13px;
-      box-shadow: 0 4px 15px rgba(68, 119, 120, .045);
-    }
-
-    .item-icon {
-      width: 62px;
-      height: 62px;
-      flex: 0 0 62px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 15px;
-      font-size: 25px;
-    }
-
-    .item-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .item-title {
-      font-size: 14px;
-      line-height: 1.5;
-      font-weight: 650;
-      margin-bottom: 5px;
-      overflow-wrap: anywhere;
-    }
-
-    .item-meta {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .item-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 8px;
-    }
-
-    .mini-tag {
-      padding: 3px 8px;
-      border-radius: 20px;
-      background: #F0F7F5;
-      color: #72968E;
-      font-size: 10px;
-    }
-
-    .item-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-
-    .action-btn {
-      border: 0;
-      background: transparent;
-      color: #A3B8B4;
-      font-size: 18px;
-      padding: 3px;
-    }
-
-    .action-btn.selected { color: #E7A9A9; }
-
-    .empty {
-      padding: 45px 15px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .empty-icon {
-      font-size: 34px;
-      margin-bottom: 10px;
-    }
-
-    .bottom-nav {
-      position: fixed;
-      z-index: 10;
-      bottom: calc(15px + env(safe-area-inset-bottom));
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 32px);
-      max-width: 560px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      padding: 9px 7px;
-      border: 1px solid rgba(224, 237, 232, .9);
-      border-radius: 27px;
-      background: rgba(255, 255, 255, .94);
-      box-shadow: 0 10px 35px rgba(56, 104, 104, .16);
-      backdrop-filter: blur(16px);
-    }
-
-    .nav-button {
-      border: 0;
-      background: transparent;
-      border-radius: 20px;
-      padding: 8px 2px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: #91A8A5;
-      font-size: 11px;
-    }
-
-    .nav-button .nav-icon { font-size: 20px; }
-
-    .nav-button.active {
-      color: #438F83;
-      background: #E1F3EC;
-      font-weight: 700;
-    }
-
-    .page-title {
-      font-size: 23px;
-      font-weight: 750;
-      margin: 8px 0 6px;
-    }
-
-    .page-description {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 21px;
-    }
-
-    .group-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-
-    .group-card {
-      border: 1px solid var(--line);
-      border-radius: 17px;
-      background: white;
-      padding: 17px 14px;
-      text-align: left;
-      color: var(--ink);
-    }
-
-    .group-card.active {
-      border-color: #8CCFC0;
-      background: #E9F6F1;
-    }
-
-    .group-name {
-      font-size: 14px;
-      font-weight: 650;
-    }
-
-    .group-count {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    @media (min-width: 600px) {
-      .app { padding-top: 35px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eaf4f3">
+<link rel="manifest" href="./manifest.json">
+<title>CULater｜稍後閱讀</title>
+<style>
+:root {
+  --blue:#6d9eae;
+  --green:#8bb9ad;
+  --ink:#30434a;
+  --muted:#829398;
+  --paper:#f7faf9;
+  --white:#fff;
+  --line:#e5eeeb;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:Arial,"Noto Sans TC",sans-serif;
+  font-size:16px;padding-bottom:100px
+}
+header{
+  padding:22px 20px 14px;display:flex;
+  align-items:center;justify-content:space-between
+}
+.brand{font-size:25px;font-weight:750;letter-spacing:-1px}
+.brand span{color:var(--blue)}
+.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.icon-btn{
+  border:1px solid var(--line);background:white;border-radius:50%;
+  width:42px;height:42px;font-size:19px;color:var(--ink)
+}
+main{padding:0 16px;max-width:700px;margin:auto}
+.search{
+  width:100%;border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;font-size:16px;background:white;outline:none
+}
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:22px 2px 12px
+}
+.section-head h2{font-size:19px;margin:0}
+.small{font-size:13px;color:var(--muted)}
+.filters{display:flex;gap:8px;overflow:auto;margin:12px 0 16px}
+.chip{
+  border:1px solid var(--line);background:white;color:var(--muted);
+  border-radius:30px;padding:8px 14px;white-space:nowrap;font-size:14px
+}
+.chip.active{background:#e4f0ef;color:#416d70;border-color:#d4e6e2}
+.item{
+  display:flex;gap:13px;background:white;border:1px solid var(--line);
+  border-radius:16px;padding:12px;margin-bottom:10px;align-items:center
+}
+.thumb{
+  width:82px;height:82px;flex-shrink:0;border-radius:11px;
+  object-fit:cover;background:#e8f1ef
+}
+.item-info{min-width:0;flex:1}
+.item-title{
+  font-size:15px;font-weight:650;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden
+}
+.item-url{font-size:12px;color:var(--muted);margin-top:5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{
+  font-size:11px;color:#527c78;background:#edf5f2;
+  padding:4px 8px;border-radius:20px
+}
+.item-actions{display:flex;gap:8px;margin-top:8px}
+.action{
+  border:0;background:transparent;color:var(--muted);
+  font-size:13px;padding:3px 0
+}
+.action.on{color:#d39a55}
+.empty{text-align:center;padding:50px 15px;color:var(--muted)}
+.fab{
+  position:fixed;right:20px;bottom:92px;border:0;border-radius:50%;
+  width:56px;height:56px;background:var(--blue);color:white;
+  font-size:28px;box-shadow:0 5px 18px #6d9eae55
+}
+nav{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  width:min(92%,460px);display:flex;justify-content:space-around;
+  background:white;border:1px solid var(--line);border-radius:30px;
+  padding:9px 6px;box-shadow:0 5px 25px #30434a18
+}
+nav button{
+  border:0;background:transparent;color:var(--muted);
+  padding:7px 12px;font-size:13px;border-radius:20px
+}
+nav button.active{background:#e5f1ef;color:#416d70;font-weight:700}
+.modal{
+  display:none;position:fixed;inset:0;background:#1e303b66;
+  z-index:5;align-items:flex-end;justify-content:center
+}
+.modal.show{display:flex}
+.panel{
+  background:white;width:min(100%,600px);max-height:88vh;overflow:auto;
+  border-radius:22px 22px 0 0;padding:22px 20px 35px
+}
+.panel h2{margin:0 0 18px;font-size:20px}
+.field{margin:13px 0}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}
+.field input,.field textarea,.field select{
+  width:100%;padding:12px;border:1px solid var(--line);
+  border-radius:11px;font-size:15px;background:white;color:var(--ink)
+}
+.primary{
+  width:100%;padding:14px;border:0;border-radius:12px;
+  background:var(--blue);color:white;font-size:16px;margin-top:12px
+}
+.secondary{
+  padding:9px 12px;border:1px solid var(--line);background:white;
+  border-radius:10px;color:var(--ink)
+}
+.manage-row{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--line);padding:12px 0
+}
+.manage-row button{margin-left:6px}
+.hidden{display:none!important}
+</style>
 </head>
-
 <body>
-  <main class="app">
-    <header class="topbar">
-      <div>
-        <div class="logo">CULater.</div>
-        <div class="tagline">SAVE NOW, READ LATER.</div>
+<header>
+  <div>
+    <div class="brand">CU<span>Later</span></div>
+    <div class="sub">Save now. Read later.</div>
+  </div>
+  <button class="icon-btn" onclick="openSettings()" aria-label="設定">⚙</button>
+</header>
+
+<main>
+  <input id="search" class="search" placeholder="搜尋收藏內容……" oninput="render()">
+  <div class="section-head">
+    <h2 id="pageTitle">未讀收藏</h2>
+    <span class="small" id="count"></span>
+  </div>
+  <div id="filters" class="filters"></div>
+  <div id="items"></div>
+</main>
+
+<button class="fab" onclick="openAdd()">＋</button>
+
+<nav>
+  <button class="active" data-page="unread" onclick="setPage('unread',this)">未讀</button>
+  <button data-page="category" onclick="setPage('category',this)">分類</button>
+  <button data-page="tag" onclick="setPage('tag',this)">標籤</button>
+  <button data-page="favorite" onclick="setPage('favorite',this)">最愛</button>
+</nav>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+const KEY="culater-v2-data";
+const defaults={
+  categories:["旅行","居家","娛樂","美食","科技","其他"],
+  tags:["待研究","想購買","靈感","攻略"],
+  items:[]
+};
+let db=loadDB();
+let page="unread", filter="all", selected="";
+
+function loadDB(){
+  try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(defaults)}
+  catch(e){return JSON.parse(JSON.stringify(defaults))}
+}
+function saveDB(){localStorage.setItem(KEY,JSON.stringify(db))}
+function esc(s=""){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))
+}
+function setPage(p,btn){
+  page=p;selected="";filter="all";
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");render();
+}
+function setFilter(v){filter=v;render()}
+function render(){
+  const titles={unread:"未讀收藏",category:"分類收藏",tag:"標籤收藏",favorite:"最愛收藏"};
+  document.getElementById("pageTitle").textContent=titles[page];
+  let arr=[...db.items];
+  if(page==="unread")arr=arr.filter(x=>!x.read);
+  if(page==="favorite")arr=arr.filter(x=>x.favorite);
+  if(page==="category"&&selected)arr=arr.filter(x=>x.category===selected);
+  if(page==="tag"&&selected)arr=arr.filter(x=>(x.tags||[]).includes(selected));
+  if(filter==="unread")arr=arr.filter(x=>!x.read);
+  if(filter==="read")arr=arr.filter(x=>x.read);
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  if(q)arr=arr.filter(x=>(x.title+" "+x.url+" "+x.note+" "+(x.tags||[]).join(" ")).toLowerCase().includes(q));
+  document.getElementById("count").textContent=arr.length+" 筆";
+  let f=document.getElementById("filters");
+  f.innerHTML="";
+  if(page!=="unread"){
+    if(page==="category"||page==="tag"){
+      const values=page==="category"?db.categories:db.tags;
+      f.innerHTML=values.map(v=>`<button class="chip ${selected===v?"active":""}" onclick="selected=${JSON.stringify(v)};render()">${esc(v)}</button>`).join("");
+    }
+    f.innerHTML+=["all","unread","read"].map(v=>`<button class="chip ${filter===v?"active":""}" onclick="setFilter('${v}')">${({all:"全部",unread:"未讀",read:"已讀"})[v]}</button>`).join("");
+  }
+  const box=document.getElementById("items");
+  if(!arr.length){box.innerHTML='<div class="empty">目前沒有收藏內容<br><br>點擊 ＋ 開始收藏</div>';return}
+  box.innerHTML=arr.map(x=>`
+    <article class="item">
+      <img class="thumb" src="${x.image||placeholder()}" onerror="this.src='${placeholder()}'">
+      <div class="item-info">
+        <div class="item-title">${esc(x.title||"未命名收藏")}</div>
+        <div class="item-url">${esc(x.url||"圖片收藏")}</div>
+        <div class="meta">
+          ${x.category?`<span class="tag">${esc(x.category)}</span>`:""}
+          ${(x.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join("")}
+        </div>
+        <div class="item-actions">
+          <button class="action ${x.favorite?"on":""}" onclick="toggleFav('${x.id}')">${x.favorite?"★ 最愛":"☆ 最愛"}</button>
+          <button class="action" onclick="toggleRead('${x.id}')">${x.read?"標記未讀":"標記已讀"}</button>
+          <button class="action" onclick="editItem('${x.id}')">編輯</button>
+        </div>
       </div>
-      <button class="search-button" id="searchToggle" aria-label="搜尋">⌕</button>
-    </header>
+    </article>`).join("");
+}
+function placeholder(){
+  return "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="100%" height="100%" fill="#e8f1ef"/><path d="M25 80 L50 48 L68 67 L82 55 L100 80" fill="none" stroke="#9bbdb5" stroke-width="4"/></svg>');
+}
+function toggleFav(id){let x=db.items.find(i=>i.id===id);x.favorite=!x.favorite;saveDB();render()}
+function toggleRead(id){let x=db.items.find(i=>i.id===id);x.read=!x.read;saveDB();render()}
+function openModal(html){document.getElementById("panel").innerHTML=html;document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
 
-    <div class="search-area" id="searchArea">
-      <input id="searchInput" type="search" placeholder="搜尋收藏的內容……">
-    </div>
-
-    <section id="welcome" class="welcome">
-      <div class="welcome-label">今天也留一點時間給自己</div>
-      <div class="welcome-count">
-        <span id="unreadCount">3</span>
-        <span>則未讀收藏</span>
-      </div>
-    </section>
-
-    <section>
-      <div class="section-heading">
-        <h2 id="sectionTitle">最近收藏</h2>
-        <span class="section-note" id="sectionNote">慢慢閱讀，不必著急</span>
-      </div>
-
-      <div id="groupArea"></div>
-
-      <div class="filter-bar" id="filterBar" style="display:none">
-        <button class="filter active" data-filter="all">全部</button>
-        <button class="filter" data-filter="unread">未讀</button>
-        <button class="filter" data-filter="read">已讀</button>
-      </div>
-
-      <div class="items" id="itemList"></div>
-    </section>
-  </main>
-
-  <nav class="bottom-nav" aria-label="主要選單">
-    <button class="nav-button active" data-page="unread">
-      <span class="nav-icon">◷</span>
-      <span>未讀</span>
-    </button>
-    <button class="nav-button" data-page="category">
-      <span class="nav-icon">▤</span>
-      <span>分類</span>
-    </button>
-    <button class="nav-button" data-page="tag">
-      <span class="nav-icon">⌗</span>
-      <span>標籤</span>
-    </button>
-    <button class="nav-button" data-page="favorite">
-      <span class="nav-icon">♡</span>
-      <span>收藏</span>
-    </button>
-  </nav>
-
-  <script>
-    // 示範資料：之後會改為 Google Sheets 資料
-    const items = [
-      {
-        id: 1,
-        title: "東京旅行必去景點整理",
-        category: "旅行",
-        tags: ["東京", "日本旅遊"],
-        icon: "🗼",
-        color: "#DDEFF4",
-        read: false,
-        favorite: true
-      },
-      {
-        id: 2,
-        title: "北歐風居家佈置靈感",
-        category: "居家",
-        tags: ["室內設計", "收納"],
-        icon: "🏡",
-        color: "#E1F1E9",
-        read: false,
-        favorite: false
-      },
-      {
-        id: 3,
-        title: "值得收藏的料理食譜",
-        category: "美食",
-        tags: ["料理", "食譜"],
-        icon: "🍵",
-        color: "#F3EEDF",
-        read: false,
-        favorite: true
-      },
-      {
-        id: 4,
-        title: "旅行攝影構圖技巧",
-        category: "旅行",
-        tags: ["攝影", "技巧"],
-        icon: "📷",
-        color: "#E8E7F4",
-        read: true,
-        favorite: false
-      },
-      {
-        id: 5,
-        title: "簡單生活與整理習慣",
-        category: "生活",
-        tags: ["生活靈感", "整理"],
-        icon: "🌿",
-        color: "#E4F0E5",
-        read: true,
-        favorite: true
-      }
-    ];
-
-    let currentPage = "unread";
-    let currentFilter = "all";
-    let selectedGroup = null;
-
-    const itemList = document.getElementById("itemList");
-    const filterBar = document.getElementById("filterBar");
-    const groupArea = document.getElementById("groupArea");
-    const welcome = document.getElementById("welcome");
-
-    const pageInfo = {
-      unread: ["未讀內容", "等待你慢慢探索的收藏"],
-      category: ["分類", "依照主題整理你的收藏"],
-      tag: ["標籤", "用關鍵字找到想看的內容"],
-      favorite: ["我的收藏", "特別留下來的內容"]
+function openAdd(item=null){
+  const x=item||{title:"",url:"",category:db.categories[0]||"",tags:[],note:"",image:""};
+  openModal(`
+    <h2>${item?"編輯收藏":"新增收藏"}</h2>
+    <div class="field"><label>標題</label><input id="iTitle" value="${esc(x.title)}" placeholder="輸入標題"></div>
+    <div class="field"><label>網址（圖片收藏可留空）</label><input id="iUrl" value="${esc(x.url)}" placeholder="https://"></div>
+    <div class="field"><label>圖片</label><input id="iFile" type="file" accept="image/*"></div>
+    <div class="field"><label>分類</label><select id="iCategory">${db.categories.map(c=>`<option ${x.category===c?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+    <div class="field"><label>標籤（可複選）</label>${db.tags.map(t=>`<label><input type="checkbox" class="iTag" value="${esc(t)}" ${(x.tags||[]).includes(t)?"checked":""}> ${esc(t)}</label>`).join(" ")}</div>
+    <div class="field"><label>備註</label><textarea id="iNote" rows="3">${esc(x.note)}</textarea></div>
+    <button class="primary" onclick="saveItem('${item?item.id:""}')">保存收藏</button>
+    <button class="secondary" style="width:100%;margin-top:10px" onclick="closeModal()">取消</button>
+  `);
+  window.currentImage=x.image||"";
+}
+function saveItem(id){
+  const file=document.getElementById("iFile").files[0];
+  const finish=()=>{
+    const obj={
+      id:id||String(Date.now()),
+      title:document.getElementById("iTitle").value.trim()||"未命名收藏",
+      url:document.getElementById("iUrl").value.trim(),
+      category:document.getElementById("iCategory").value,
+      tags:[...document.querySelectorAll(".iTag:checked")].map(e=>e.value),
+      note:document.getElementById("iNote").value,
+      image:window.currentImage||"",
+      read:false,favorite:false
     };
+    const old=db.items.find(x=>x.id===id);
+    if(old){obj.read=old.read;obj.favorite=old.favorite;db.items=db.items.map(x=>x.id===id?obj:x)}
+    else db.items.unshift(obj);
+    try{saveDB();closeModal();render()}
+    catch(e){alert("本機儲存空間不足，請先使用較小的圖片。")}
+  };
+  if(file){
+    if(file.size>800*1024){alert("目前本機測試版單張圖片請小於 800KB。雲端圖片上傳會在下一階段完成。");return}
+    const reader=new FileReader();
+    reader.onload=()=>{window.currentImage=reader.result;finish()};
+    reader.readAsDataURL(file);
+  }else finish();
+}
+function editItem(id){openAdd(db.items.find(x=>x.id===id))}
+function openSettings(){
+  openModal(`
+    <h2>管理設定</h2>
+    <button class="secondary" style="width:100%;margin-bottom:10px" onclick="manage('category')">分類管理</button>
+    <button class="secondary" style="width:100%;margin-bottom:10px" onclick="manage('tag')">標籤管理</button>
+    <button class="secondary" style="width:100%" onclick="closeModal()">返回</button>
+  `);
+}
+function manage(type){
+  const isCat=type==="category", list=isCat?db.categories:db.tags;
+  const title=isCat?"分類管理":"標籤管理";
+  openModal(`<h2>${title}</h2>
+    <div class="field"><input id="newValue" placeholder="輸入新${isCat?"分類":"標籤"}名稱"></div>
+    <button class="primary" onclick="addValue('${type}')">新增</button>
+    <div style="margin-top:18px">${list.map(v=>`
+      <div class="manage-row"><span>${esc(v)}</span><span>
+      <button class="secondary" onclick="renameValue('${type}',${JSON.stringify(v)})">改名</button>
+      <button class="secondary" onclick="deleteValue('${type}',${JSON.stringify(v)})">刪除</button>
+      </span></div>`).join("")}</div>
+    <button class="secondary" style="width:100%;margin-top:16px" onclick="openSettings()">返回設定</button>`);
+}
+function addValue(type){
+  const v=document.getElementById("newValue").value.trim();
+  if(!v)return;
+  const list=type==="category"?db.categories:db.tags;
+  if(list.includes(v)){alert("名稱已存在");return}
+  list.push(v);saveDB();manage(type);
+}
+function renameValue(type,old){
+  const v=prompt("請輸入新名稱",old);
+  if(!v||!v.trim())return;
+  const name=v.trim(),list=type==="category"?db.categories:db.tags;
+  if(list.includes(name)){alert("名稱已存在");return}
+  const i=list.indexOf(old);list[i]=name;
+  db.items.forEach(x=>{
+    if(type==="category"&&x.category===old)x.category=name;
+    if(type==="tag")x.tags=(x.tags||[]).map(t=>t===old?name:t);
+  });
+  saveDB();manage(type);
+}
+function deleteValue(type,v){
+  if(!confirm(`確定刪除「${v}」？收藏內容不會被刪除。`))return;
+  if(type==="category"){
+    db.categories=db.categories.filter(x=>x!==v);
+    db.items.forEach(x=>{if(x.category===v)x.category=""});
+  }else{
+    db.tags=db.tags.filter(x=>x!==v);
+    db.items.forEach(x=>x.tags=(x.tags||[]).filter(t=>t!==v));
+  }
+  saveDB();manage(type);
+}
 
-    function updateCount() {
-      document.getElementById("unreadCount").textContent =
-        items.filter(item => !item.read).length;
-    }
-
-    function getGroups() {
-      if (currentPage === "category") {
-        return [...new Set(items.map(item => item.category))];
-      }
-
-      if (currentPage === "tag") {
-        return [...new Set(items.flatMap(item => item.tags))];
-      }
-
-      return [];
-    }
-
-    function renderGroups() {
-      groupArea.innerHTML = "";
-      groupArea.className = "";
-
-      if (currentPage !== "category" && currentPage !== "tag") return;
-
-      const groups = getGroups();
-      const area = document.createElement("div");
-      area.className = "group-list";
-
-      groups.forEach(group => {
-        const count = items.filter(item =>
-          currentPage === "category"
-            ? item.category === group
-            : item.tags.includes(group)
-        ).length;
-
-        const button = document.createElement("button");
-        button.className = "group-card" +
-          (selectedGroup === group ? " active" : "");
-
-        button.innerHTML = `
-          <div class="group-name">${group}</div>
-          <div class="group-count">${count} 則收藏</div>
-        `;
-
-        button.addEventListener("click", () => {
-          selectedGroup = selectedGroup === group ? null : group;
-          render();
-        });
-
-        area.appendChild(button);
+// 接收目前 manifest GET 分享的網址資料
+const params=new URLSearchParams(location.search);
+const sharedUrl=params.get("url")||"";
+const sharedTitle=params.get("title")||params.get("text")||"";
+if(sharedUrl){
+  setTimeout(()=>{
+    if(confirm("要將分享的網址加入 CULater 嗎？")){
+      db.items.unshift({
+        id:String(Date.now()),title:sharedTitle||sharedUrl,url:sharedUrl,
+        category:db.categories[0]||"",tags:[],note:"",
+        image:"",read:false,favorite:false
       });
-
-      groupArea.appendChild(area);
+      saveDB();render();
     }
+    history.replaceState({},document.title,location.pathname);
+  },300);
+}
 
-    function getVisibleItems() {
-      const keyword = document.getElementById("searchInput")
-        .value.trim().toLowerCase();
-
-      return items.filter(item => {
-        if (currentPage === "unread" && item.read) return false;
-        if (currentPage === "favorite" && !item.favorite) return false;
-
-        if (currentPage === "category" && selectedGroup &&
-            item.category !== selectedGroup) return false;
-
-        if (currentPage === "tag" && selectedGroup &&
-            !item.tags.includes(selectedGroup)) return false;
-
-        if (currentFilter === "unread" && item.read) return false;
-        if (currentFilter === "read" && !item.read) return false;
-
-        const searchText = [
-          item.title, item.category, ...item.tags
-        ].join(" ").toLowerCase();
-
-        if (keyword && !searchText.includes(keyword)) return false;
-
-        return true;
-      });
-    }
-
-    function renderItems() {
-      const visible = getVisibleItems();
-      itemList.innerHTML = "";
-
-      if (!visible.length) {
-        itemList.innerHTML = `
-          <div class="empty">
-            <div class="empty-icon">☁️</div>
-            目前沒有符合條件的內容
-          </div>
-        `;
-        return;
-      }
-
-      visible.forEach(item => {
-        const card = document.createElement("article");
-        card.className = "item";
-
-        const icon = document.createElement("div");
-        icon.className = "item-icon";
-        icon.style.background = item.color;
-        icon.textContent = item.icon;
-
-        const info = document.createElement("div");
-        info.className = "item-info";
-
-        const title = document.createElement("div");
-        title.className = "item-title";
-        title.textContent = item.title;
-
-        const meta = document.createElement("div");
-        meta.className = "item-meta";
-        meta.textContent = item.category +
-          (item.read ? " · 已讀" : " · 未讀");
-
-        const tags = document.createElement("div");
-        tags.className = "item-tags";
-
-        item.tags.forEach(tag => {
-          const span = document.createElement("span");
-          span.className = "mini-tag";
-          span.textContent = tag;
-          tags.appendChild(span);
-        });
-
-        info.append(title, meta, tags);
-
-        const actions = document.createElement("div");
-        actions.className = "item-actions";
-
-        const favorite = document.createElement("button");
-        favorite.className = "action-btn" +
-          (item.favorite ? " selected" : "");
-        favorite.textContent = item.favorite ? "♥" : "♡";
-        favorite.setAttribute("aria-label", "切換收藏");
-        favorite.addEventListener("click", () => {
-          item.favorite = !item.favorite;
-          render();
-        });
-
-        const read = document.createElement("button");
-        read.className = "action-btn";
-        read.textContent = item.read ? "↶" : "✓";
-        read.setAttribute("aria-label", "切換已讀狀態");
-        read.addEventListener("click", () => {
-          item.read = !item.read;
-          render();
-        });
-
-        actions.append(favorite, read);
-        card.append(icon, info, actions);
-        itemList.appendChild(card);
-      });
-    }
-
-    function render() {
-      const [title, description] = pageInfo[currentPage];
-
-      document.getElementById("sectionTitle").textContent = title;
-      document.getElementById("sectionNote").textContent = description;
-
-      welcome.style.display = currentPage === "unread" ? "block" : "none";
-
-      filterBar.style.display =
-        ["category", "tag", "favorite"].includes(currentPage)
-          ? "flex" : "none";
-
-      document.querySelectorAll(".filter").forEach(button => {
-        button.classList.toggle(
-          "active", button.dataset.filter === currentFilter
-        );
-      });
-
-      document.querySelectorAll(".nav-button").forEach(button => {
-        button.classList.toggle(
-          "active", button.dataset.page === currentPage
-        );
-      });
-
-      renderGroups();
-      renderItems();
-      updateCount();
-    }
-
-    document.querySelectorAll(".nav-button").forEach(button => {
-      button.addEventListener("click", () => {
-        currentPage = button.dataset.page;
-        currentFilter = "all";
-        selectedGroup = null;
-        render();
-      });
-    });
-
-    document.querySelectorAll(".filter").forEach(button => {
-      button.addEventListener("click", () => {
-        currentFilter = button.dataset.filter;
-        render();
-      });
-    });
-
-    document.getElementById("searchToggle").addEventListener("click", () => {
-      document.getElementById("searchArea").classList.toggle("show");
-      document.getElementById("searchInput").focus();
-    });
-
-    document.getElementById("searchInput").addEventListener("input", renderItems);
-
-    // 接收 Android 分享過來的網址與標題，先顯示提示
-    const params = new URLSearchParams(window.location.search);
-    const sharedTitle = params.get("title") || "";
-    const sharedText = params.get("text") || "";
-    const sharedUrl = params.get("url") || "";
-
-    if (sharedTitle || sharedText || sharedUrl) {
-      const shared = document.createElement("div");
-      shared.className = "welcome";
-      shared.style.marginTop = "15px";
-      shared.innerHTML = `
-        <div class="welcome-label">收到分享內容</div>
-        <div style="font-size:14px;margin-top:8px;overflow-wrap:anywhere">
-          ${escapeHTML(sharedTitle || sharedText || sharedUrl)}
-        </div>
-        <div style="font-size:11px;margin-top:8px;color:#668B8E">
-          分享接收畫面已啟動，下一步將加入正式儲存功能。
-        </div>
-      `;
-      document.querySelector(".topbar").after(shared);
-    }
-
-    function escapeHTML(value) {
-      return String(value).replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[char]);
-    }
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js")
-          .then(registration => {
-            console.log("CULater Service Worker 已啟用", registration.scope);
-          })
-          .catch(error => {
-            console.error("Service Worker 啟用失敗", error);
-          });
-      });
-    }
-
-    render();
-  </script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./service-worker.js").catch(console.error);
+  });
+}
+render();
+</script>
 </body>
 </html>
