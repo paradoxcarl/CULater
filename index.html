@@ -409,37 +409,23 @@ function initItemSortable(){
   sortInstances.push(s);
 }
 
-function reorderItems(visibleIds){
-  const visibleSet=new Set(visibleIds);
-  let index=0;
+function reorderItems(visibleIds) {
+  const snapshot = loadItemsBeforeReorder || [...db.items];
+  const visibleSet = new Set(visibleIds);
+  const byId = new Map(snapshot.map(item => [item.id, item]));
 
-  db.items=db.items.map(item=>{
-    if(visibleSet.has(item.id)){
-      return null;
+  let cursor = 0;
+
+  db.items = snapshot.map(item => {
+    if (visibleSet.has(item.id)) {
+      return byId.get(visibleIds[cursor++]) || item;
     }
     return item;
   });
 
-  const ordered=visibleIds.map(id=>db.items.find(x=>x&&x.id===id)).filter(Boolean);
-
-  // 依照原本可見項目的位置重新放回，保留篩選外資料的位置
-  const original=loadItemsBeforeReorder;
-  if(original){
-    let visibleIndex=0;
-    db.items=original.map(item=>{
-      if(visibleSet.has(item.id)){
-        return ordered[visibleIndex++]||item;
-      }
-      return item;
-    });
-  }else{
-    db.items=ordered.concat(db.items.filter(Boolean));
-  }
-
-  loadItemsBeforeReorder=null;
+  loadItemsBeforeReorder = null;
   saveDB();
 }
-
 let loadItemsBeforeReorder=null;
 
 // 以拖拉後的顯示順序更新分類或標籤
