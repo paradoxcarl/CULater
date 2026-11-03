@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#172b4d">
+  <title>CULater｜稍後閱讀</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif;
+      background: #f5f7fb;
+      color: #24324a;
+    }
+
+    header {
+      background: #172b4d;
+      color: white;
+      padding: 22px 20px 26px;
+    }
+
+    .top {
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo { font-size: 25px; font-weight: 800; }
+    .subtitle { font-size: 12px; opacity: .7; margin-top: 4px; }
+
+    .count {
+      background: #ffffff20;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: auto;
+      padding: 22px 16px 90px;
+    }
+
+    .search {
+      width: 100%;
+      padding: 15px 16px;
+      border: 1px solid #e0e5ed;
+      border-radius: 14px;
+      background: white;
+      font-size: 15px;
+      outline: none;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 750;
+      margin: 22px 0 12px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+
+    .filter {
+      border: 1px solid #e0e5ed;
+      background: white;
+      color: #526079;
+      padding: 9px 15px;
+      border-radius: 30px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .filter.active {
+      background: #172b4d;
+      color: white;
+      border-color: #172b4d;
+    }
+
+    .list {
+      display: grid;
+      gap: 13px;
+    }
+
+    .item {
+      background: white;
+      border: 1px solid #e9edf3;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+    }
+
+    .thumb {
+      width: 76px;
+      height: 76px;
+      border-radius: 12px;
+      background: #e9eef8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 29px;
+      flex-shrink: 0;
+    }
+
+    .info { flex: 1; min-width: 0; }
+
+    .item-title {
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 5px;
+    }
+
+    .description {
+      font-size: 13px;
+      color: #7a8699;
+      line-height: 1.5;
+    }
+
+    .meta {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .tag {
+      background: #f0f3f8;
+      color: #526079;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .status {
+      font-size: 11px;
+      color: #d97706;
+      margin-left: auto;
+    }
+
+    .status.read { color: #159568; }
+
+    .read-btn {
+      border: 0;
+      background: #edf2fa;
+      color: #344c72;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #8b95a5;
+      padding: 45px 10px;
+    }
+
+    .bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e9edf3;
+      padding: 13px;
+      text-align: center;
+      color: #8b95a5;
+      font-size: 12px;
+    }
+
+    @media (min-width: 650px) {
+      main { padding-top: 30px; }
+      .list { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <div>
+      <div class="logo">CULater.</div>
+      <div class="subtitle">Save now. Read later.</div>
+    </div>
+    <div class="count">收藏 <span id="total">3</span> 筆</div>
+  </div>
+</header>
+
+<main>
+  <input
+    class="search"
+    id="search"
+    placeholder="🔍 搜尋標題、網址或備註..."
+    oninput="render()"
+  >
+
+  <div class="section-title">閱讀狀態</div>
+  <div class="filters" id="statusFilters">
+    <button class="filter active" data-status="ALL">全部</button>
+    <button class="filter" data-status="UNREAD">未讀</button>
+    <button class="filter" data-status="READ">已讀</button>
+  </div>
+
+  <div class="section-title">收藏分類</div>
+  <div class="filters" id="categoryFilters">
+    <button class="filter active" data-category="ALL">全部</button>
+    <button class="filter" data-category="旅行">✈️ 旅行</button>
+    <button class="filter" data-category="居家">🏠 居家</button>
+    <button class="filter" data-category="娛樂">🎮 娛樂</button>
+    <button class="filter" data-category="其他">📁 其他</button>
+  </div>
+
+  <div class="section-title">我的收藏</div>
+  <div class="list" id="list"></div>
+</main>
+
+<div class="bottom">CULater · 個人稍後閱讀收藏庫</div>
+
+<script>
+  const items = [
+    {
+      title: "東京自由行必去景點整理",
+      description: "日本東京旅行景點與交通資訊參考。",
+      category: "旅行",
+      icon: "✈️",
+      tags: ["東京", "旅遊規劃"],
+      note: "下次東京旅行可以參考",
+      status: "UNREAD"
+    },
+    {
+      title: "居家收納與空間整理靈感",
+      description: "小空間收納設計與實用技巧。",
+      category: "居家",
+      icon: "🏠",
+      tags: ["收納", "設計"],
+      note: "有空再研究",
+      status: "UNREAD"
+    },
+    {
+      title: "值得收藏的遊戲資訊",
+      description: "遊戲攻略、技巧與相關資訊。",
+      category: "娛樂",
+      icon: "🎮",
+      tags: ["遊戲"],
+      note: "",
+      status: "READ"
+    }
+  ];
+
+  let selectedStatus = "ALL";
+  let selectedCategory = "ALL";
+
+  function render() {
+    const keyword = document.getElementById("search").value
+      .trim().toLowerCase();
+
+    const filtered = items.filter(item => {
+      const text = [
+        item.title,
+        item.description,
+        item.note,
+        ...item.tags
+      ].join(" ").toLowerCase();
+
+      return (
+        (selectedStatus === "ALL" || item.status === selectedStatus) &&
+        (selectedCategory === "ALL" || item.category === selectedCategory) &&
+        text.includes(keyword)
+      );
+    });
+
+    document.getElementById("total").textContent = items.length;
+
+    const list = document.getElementById("list");
+
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty">找不到符合的收藏</div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(item => {
+      const index = items.indexOf(item);
+      const isRead = item.status === "READ";
+
+      return `
+        <article class="item">
+          <div class="thumb">${item.icon}</div>
+          <div class="info">
+            <div class="item-title">${escapeHTML(item.title)}</div>
+            <div class="description">${escapeHTML(item.description)}</div>
+            <div class="meta">
+              <span class="tag">${escapeHTML(item.category)}</span>
+              ${item.tags.map(tag =>
+                `<span class="tag">#${escapeHTML(tag)}</span>`
+              ).join("")}
+              <span class="status ${isRead ? "read" : ""}">
+                ${isRead ? "✓ 已讀" : "● 未讀"}
+              </span>
+            </div>
+            <button class="read-btn" onclick="toggleRead(${index})">
+              ${isRead ? "改為未讀" : "標記已讀"}
+            </button>
+          </div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  function toggleRead(index) {
+    items[index].status =
+      items[index].status === "READ" ? "UNREAD" : "READ";
+    render();
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+  }
+
+  document.querySelectorAll("#statusFilters button").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedStatus = button.dataset.status;
+      updateActive("#statusFilters", button);
+      render();
+    });
+  });
+
+  document.querySelectorAll("#categoryFilters button").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedCategory = button.dataset.category;
+      updateActive("#categoryFilters", button);
+      render();
+    });
+  });
+
+  function updateActive(selector, selected) {
+    document.querySelectorAll(selector + " button").forEach(button => {
+      button.classList.toggle("active", button === selected);
+    });
+  }
+
+  render();
+</script>
+
+</body>
+</html>
