@@ -1,8 +1,6 @@
 {
   "id": "./",
-  "name": "CULater - 稍後閱讀",
-  "short_name": "CULater",
-  "description": "個人網址與內容收藏管理工具",
+  "name": "CULater",
   "lang": "zh-TW",
   "start_url": "./",
   "scope": "./",
