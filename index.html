@@ -401,9 +401,14 @@ function initItemSortable(){
     delayOnTouchOnly:true,
     touchStartThreshold:5,
     onEnd:function(){
-      const ids=[...box.querySelectorAll(".item")].map(el=>el.dataset.id);
-      reorderItems(ids);
-    }
+  const ids=[...box.querySelectorAll(".item")]
+    .map(el=>el.dataset.id)
+    .filter(Boolean);
+
+  if(ids.length>1){
+    reorderItems(ids);
+  }
+}
   });
 
   sortInstances.push(s);
