@@ -784,31 +784,68 @@ document.getElementById("panel").addEventListener("click",e=>{
   }
 });
 
-// 接收目前 manifest GET 分享的網址資料
-const params=new URLSearchParams(location.search);
-const sharedUrl=params.get("url")||"";
-const sharedTitle=params.get("title")||params.get("text")||"";
 
-if(sharedUrl){
-  setTimeout(()=>{
-    if(confirm("要將分享的網址加入 CULater 嗎？")){
-      db.items.unshift({
-        id:String(Date.now()),
-        title:sharedTitle||sharedUrl,
-        url:sharedUrl,
-        category:db.categories[0]||"",
-        tags:[],
-        note:"",
-        image:"",
-        read:false,
-        favorite:false
-      });
-      saveDB();
-      render();
-    }
-    history.replaceState({},document.title,location.pathname);
-  },300);
+// 自動接收 Facebook、LINE 等 App 分享的內容
+const params = new URLSearchParams(location.search);
+
+const sharedTitle = params.get("title") || "";
+const sharedText = params.get("text") || "";
+const directUrl = params.get("url") || "";
+
+// 從分享文字中自動尋找網址
+const urlMatch = sharedText.match(/https?:\/\/[^\s<>"']+/i);
+
+let sharedUrl = directUrl || (urlMatch ? urlMatch[0] : "");
+
+// 清除網址尾端常見標點符號
+sharedUrl = sharedUrl.replace(/[。，、！!？?）)\]】]+$/g, "");
+
+// 整理標題與備註
+const textWithoutUrl = sharedText
+  .replace(sharedUrl, "")
+  .trim();
+
+const finalTitle =
+  sharedTitle ||
+  textWithoutUrl ||
+  sharedUrl ||
+  "分享內容";
+
+const finalNote = textWithoutUrl;
+
+// 只要有網址或文字，就自動新增
+if (sharedUrl || sharedText || sharedTitle) {
+  const isDuplicate = db.items.some(item =>
+    sharedUrl &&
+    item.url &&
+    item.url === sharedUrl
+  );
+
+  if (!isDuplicate) {
+    db.items.unshift({
+      id: String(Date.now()),
+      title: finalTitle,
+      url: sharedUrl,
+      category: db.categories[0] || "",
+      tags: [],
+      note: finalNote,
+      image: "",
+      read: false,
+      favorite: false
+    });
+
+    saveDB();
+    render();
+
+    alert("已成功加入 CULater！");
+  } else {
+    alert("這筆內容已經收藏過了！");
+  }
+
+  // 清除分享參數，避免重新整理時重複處理
+  history.replaceState({}, document.title, location.pathname);
 }
+
 
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>{
